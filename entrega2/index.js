@@ -5,13 +5,7 @@ class ProductManager {
         this.file = File || 'file.txt';
     }
 
-    getId() {
-        let id = productID;
-        productID++;
-        return id;
-    }
-
-    addProduct(product) {
+    async addProduct(product) {
         
         if (product.title === undefined) throw new Error(`Error Title Undefined`);
         if (product.description === undefined) throw new Error(`Error description Undefined`);
@@ -21,49 +15,50 @@ class ProductManager {
         if (product.stock === undefined) throw new Error(`Error stock Undefined`);
 
         try {
-            const contenido =  fs.readFileSync(this.file, "utf-8");
-            let data = JSON.parse(contenido);
+            const content = await fs.promises.readFile(this.file, "utf-8");
+            let data = JSON.parse(content);
             let id = (data[(data.length-1)].id + 1);
             product.id = id;
             data.push(product);
-            fs.writeFileSync(this.file, JSON.stringify(data));
+            await fs.writeFileSync(this.file, JSON.stringify(data));
             console.log("The product has been saved.");
         } catch (error) {
             let data = [];
             product.id = 1;
             data.push(product);
-            fs.writeFileSync(this.file, JSON.stringify(data));
+            await fs.promises.writeFile(this.file, JSON.stringify(data));
             console.log("The product has been saved.");
         }
     }
 
-    getProducts() {
+    async getProducts() {
         try {
-            const contenido =  fs.readFileSync(this.file, "utf-8");
-            return JSON.parse(contenido);
-        } catch {
-            console.log("Error al abrir el file");
+            const content =  await fs.promises.readFile(this.file, "utf-8");
+            let data = JSON.parse(content);
+            return data;
+        } catch(error) {
+            console.log(error.message);
             return undefined;
         }
     }
 
-    getProductById(id) {
-        const contenido =  fs.readFileSync(this.file, "utf-8");
-        let data = JSON.parse(contenido);
+    async getProductById(id) {
+        const content = await fs.promises.readFile(this.file, "utf-8");
+        let data = JSON.parse(content);
         let product = data.find(element => element.id === id)
         if (product === undefined) throw new Error('Not found');
         return product;
     }
 
-    updateProduct(product) {
+    async updateProduct(product) {
         if (product.id === undefined) throw new Error(`Error Id Undefined`);
 
         try {
-            const contenido =  fs.readFileSync(this.file, "utf-8");
-            let data = JSON.parse(contenido);
+            const content = await fs.promises.readFile(this.file, "utf-8");
+            let data = JSON.parse(content);
             let index = data.findIndex(element => element.id === product.id);
             data[index] = product
-            fs.writeFileSync(this.file, JSON.stringify(data));
+            await fs.promises.writeFile(this.file, JSON.stringify(data));
             return true;
         } catch (error) {
             console.log(error.message);
@@ -72,13 +67,13 @@ class ProductManager {
 
     }
 
-     deleteProduct(id) {
+     async deleteProduct(id) {
         try{
-            const contenido =  fs.readFileSync(this.file, "utf-8");
-            let data = JSON.parse(contenido).filter(function (element) {
+            const content = await fs.promises.readFile(this.file, "utf-8");
+            let data = JSON.parse(content).filter(function (element) {
                 return element.id != id;
             });
-            fs.writeFileSync(this.file, JSON.stringify(data));
+            await fs.promises.writeFile(this.file, JSON.stringify(data));
             console.log(`ID ${id} has been deleted`);
             return true;
         } catch (error) {
@@ -118,26 +113,31 @@ let productB = {
     stock: 1
 };
 
-let productC = {
-    title: "Escritorio equipado",
-    description: "Super escritorio equipado",
-    price: 5000,
-    thumbnail: "https://cdn1.iconfinder.com/data/icons/work-from-home-25/512/WorkFromHome_workspace-computer-desk-chair-256.png"
-};
 
-Manager.addProduct(productA);
-Manager.addProduct(productB);
-console.log(Manager.getProducts());
-console.log(Manager.getProductById(1));
+new Promise(async () => {
+    console.log("Adding products");
+    await Manager.addProduct(productA);
+    await Manager.addProduct(productB);
 
-try {
-    Manager.updateProduct(productA1);
-} catch (error) {
-    console.error(error.message);
-}
+    console.log("Get all products");
+    console.log( await Manager.getProducts());
 
-console.log(Manager.getProducts());
+    console.log("Get product by id");
+    console.log( await Manager.getProductById(1));
 
-Manager.deleteProduct(2);
+    try {
+        console.log("Updating Product");
+        await Manager.updateProduct(productA1);
+    } catch (error) {
+        console.error(error.message);
+    }
 
-console.log(Manager.getProducts());
+    console.log("Get all products");
+    console.log( await Manager.getProducts());
+
+    console.log("Delete Product by ID");
+    await Manager.deleteProduct(2);
+
+    console.log("Get all products");
+    console.log( await Manager.getProducts());
+});
