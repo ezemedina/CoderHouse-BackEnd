@@ -21,13 +21,13 @@ class ProductManager {
             product.id = id;
             data.push(product);
             await fs.promises.writeFile(this.file, JSON.stringify(data));
-            return (`The product has been saved.`);
+            return (product);
         } catch (error) {
             let data = [];
             product.id = 1;
             data.push(product);
             await fs.promises.writeFile(this.file, JSON.stringify(data));
-            return (`The product has been saved.`);
+            return (product);
         }
     }
 
@@ -55,13 +55,14 @@ class ProductManager {
             const content = await fs.promises.readFile(this.file, "utf-8");
             let data = JSON.parse(content);
             let index = data.findIndex(element => element.id === id);
-            if ( index === -1 )  throw new Error('Errorm ID not found');
-            data[index] = product
+            if ( index === -1 )  throw new Error('ErrorS ID not found');
+            let update = Object.assign(data[index], product);
+            data[index] = update;
             await fs.promises.writeFile(this.file, JSON.stringify(data));
-            return true;
+            return update;
         } catch (error) {
             console.log(error.message);
-            return false;
+            throw new Error(error.message);
         }
 
     }

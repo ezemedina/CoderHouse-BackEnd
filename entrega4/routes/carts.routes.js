@@ -4,7 +4,7 @@ const Manager = new CartManager();
 const carts = express.Router();
 
 carts.post("/", (req,res) => {
-    Manager.CreateCart(req.body)
+    Manager.createCart()
         .then((data) => res.status(200).send(data))
         .catch((error) => {
             let message = {
@@ -15,7 +15,7 @@ carts.post("/", (req,res) => {
 });
 
 carts.get('/:cid', (req,res) => {
-    let cid = parseInt(req.params.pid);
+    let cid = parseInt(req.params.cid);
     Manager.getCartProducts(cid)
         .then((data) => res.status(200).send(data))
         .catch((error) => {
@@ -27,17 +27,21 @@ carts.get('/:cid', (req,res) => {
 });
 
 carts.post('/:cid/product/:pid', (req,res) => {
-    let cid = parseInt(req.params.cid);
-    let pid = parseInt(req.params.pid);
-    if (req.body.quantity === null || undefined) res.status(400).send(`Error: Body needs the quantity`)
-    Manager.addProduct(cid,pid, req.body.quantity)
-        .then((data) => res.status(200).send(data))
-        .catch((error) => {
-            let message = {
-                error: error.message
-            }
-            res.status(500).send(message);
-        });
+    if (req.body.quantity === undefined) {
+        res.status(400).send(`Error: Body needs the quantity`);
+    } else {
+        let cid = parseInt(req.params.cid);
+        let pid = parseInt(req.params.pid);
+        let qty = req.body.quantity;
+        Manager.addProduct(cid,pid,qty)
+            .then((data) => res.status(200).send(data))
+            .catch((error) => {
+                let message = {
+                    error: error.message
+                }
+                res.status(500).send(message);
+            });
+    }
 });
 
 module.exports = carts;
