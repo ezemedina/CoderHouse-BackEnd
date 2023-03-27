@@ -28,7 +28,7 @@ carts.get('/:cid', (req,res) => {
 
 carts.post('/:cid/product/:pid', (req,res) => {
     if (req.body.quantity === undefined) {
-        res.status(400).send(`Error: Body needs the quantity`);
+        res.status(400).send({Error: "Body needs the quantity"});
     } else {
         let cid = parseInt(req.params.cid);
         let pid = parseInt(req.params.pid);
