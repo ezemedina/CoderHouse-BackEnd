@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-KK94CHFLLe+nY2dmCWGMq91rCGa5gtU4mk92HdvYe+M/SXH301p5ILy+dN9+nJOZ" crossorigin="anonymous">
+    <title>{{title}}</title>
+</head>
+<body>
+    <section id="AddProducto">
+        <div class="container d-flex justify-content-center text-center">
+            <div class="col-6 ">
+                <form id="formSubirProducto" method="post" action="/api/productos">
+                    <h1 class="my-3">Ingresar producto</h1>
+                    <div class="input-group mb-3">
+                        <span class="input-group-text" id="basic-addon1">Producto</span>
+                        <input type="text" class="form-control" placeholder="Nombre del producto"
+                            aria-label="Nombre del producto" aria-describedby="basic-addon1" required>
+                    </div>
+                    <div class="input-group mb-3">
+                        <span class="input-group-text" id="basic-addon1">Precio</span>
+                        <input type="number" class="form-control" placeholder="Precio del producto"
+                            aria-label="Precio del producto" aria-describedby="basic-addon1" min="0.00" max="999999.99" step="0.01" required>
+                    </div>
+                    <div class="input-group mb-3">
+                        <span class="input-group-text" id="basic-addon1">Imagen Ilustrativa</span>
+                        <input type="url" class="form-control" placeholder="Imagen del producto"
+                            aria-label="Imagen del producto" aria-describedby="basic-addon1" required>
+                    </div>
+                    <div class="input-group mb-3">
+                        <span class="input-group-text" id="basic-addon1">Codigo / SKU</span>
+                        <input type="test" class="form-control" placeholder="Codigo / SKU"
+                            aria-label="Codigo / SKU" aria-describedby="basic-addon1" required>
+                    </div>
+                    <div class="input-group mb-3">
+                        <span class="input-group-text" id="basic-addon1">Stock</span>
+                        <input type="number" class="form-control" placeholder="Stock"
+                            aria-label="Stock" aria-describedby="basic-addon1" required>
+                    </div>
+                    <button id="botonEnviar" type="submit" class="btn btn-primary">Enviar</button>
+                    <button id="botonEnviando" class="btn btn-primary visually-hidden" type="button" disabled>
+                        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                        Enviando...
+                    </button>
+                </form>
+            </div>
+        </div>
+    </section>
+    <section id="DeleteProducto">
+        <div class="container d-flex justify-content-center text-center">
+            <div class="col-6 ">
+                <form id="formEliminarProducto" method="delete" action="/api/productos">
+                    <h1 class="my-3">Ingresar producto a eliminar</h1>
+                    <div class="input-group mb-3">
+                        <span class="input-group-text" id="basic-addon1">id</span>
+                        <input type="text" class="form-control" placeholder="id"
+                            aria-label="id" aria-describedby="basic-addon1" required>
+                    </div>
+                    <button id="botonEnviarEliminacion" type="submit" class="btn btn-primary">Enviar</button>
+                    <button id="botonEnviandoEliminacion" class="btn btn-primary visually-hidden" type="button" disabled>
+                        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                        Enviando...
+                    </button>
+                </form>
+            </div>
+        </div>
+    </section>
+    <section class="container" id="Productos">
+        <h1>Productos</h1>
+        <div class="row" id="columnas">
+            {{#each products}}
+            
+            {{/each}}   
+        </div>
+    </section>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.7/dist/umd/popper.min.js" integrity="sha384-zYPOMqeu1DAVkHiLqWBUTcbYfZ8osu1Nd6Z89ify25QV9guujx43ITvfi12/QExE" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.min.js" integrity="sha384-Y4oOpwW3duJdCWv5ly8SCFYWqFDsfob/3GkgExXKV4idmbt98QcxXYs9UoXAB7BZ" crossorigin="anonymous"></script>
+
+    <script type="text/javascript">
+        let socket = io();
+
+        let productos = document.getElementById("columnas");
+
+        socket.on("productos", function (element) {
+            if (element.length === 0) {
+                console.info(`Sin productos`);
+            } else {
+                productos.innerHTML = "";
+                element.forEach(element => {
+                    let append = `
+                <div class="col-3">
+                    <div class="card mb-3" >
+                        <img src="${element.thumbnail}" class="card-img-top" alt="${element.title}">
+                        <div class="card-body">
+                            <h5 class="card-title">${element.title}</h5>
+                            <h6>${element.price} - SKU: ${element.code}</h6>
+                            <p class="card-text">${element.description}</p>
+                            <h6>Stock: ${element.stock}</h6>
+                        </div>
+                    </div>
+                </div>`;
+                productos.innerHTML += append;
+                });
+            }
+        });
+        
+        /* Formulario de envio */
+
+        let formSubirProducto = document.getElementById("formSubirProducto");
+        let botonEnviar = document.getElementById("botonEnviar");
+        let botonEnviando = document.getElementById("botonEnviando");
+
+        formSubirProducto.addEventListener("submit", (e) => {
+            e.preventDefault();
+            let producto = e.target.children[1].children[1].value;
+            let precio = e.target.children[2].children[1].value;
+            let imagen = e.target.children[3].children[1].value;
+            let code = e.target.children[4].children[1].value;
+            let stock = e.target.children[5].children[1].value;
+            botonEnviar.classList.add('visually-hidden');
+            botonEnviando.classList.remove('visually-hidden');
+            let data = {
+                title: producto,
+                price: precio,
+                thumbnail: imagen,
+                code: code,
+                stock: stock
+            };
+            try {
+                socket.emit("nuevoProducto", JSON.stringify(data));
+                e.target.children[1].children[1].value = "";
+                e.target.children[2].children[1].value = "";
+                e.target.children[3].children[1].value = "";
+                e.target.children[4].children[1].value = "";
+                e.target.children[5].children[1].value = "";
+            } catch (error) {
+                console.error(error);
+            }
+            botonEnviando.classList.add('visually-hidden');
+            botonEnviar.classList.remove('visually-hidden');
+        });
+
+        /* Formulario de eliminacion */
+
+        let formSubirProducto = document.getElementById("formEliminarProducto");
+        let botonEnviar = document.getElementById("botonEnviarEliminacion");
+        let botonEnviando = document.getElementById("botonEnviandoEliminacion");
+
+        formSubirProducto.addEventListener("submit", (e) => {
+            e.preventDefault();
+            let producto = e.target.children[1].children[1].value;
+            botonEnviar.classList.add('visually-hidden');
+            botonEnviando.classList.remove('visually-hidden');
+            let data = {
+                id: id
+            };
+            try {
+                socket.emit("nuevoProducto", JSON.stringify(data));
+                e.target.children[1].children[1].value = "";
+            } catch (error) {
+                console.error(error);
+            }
+            botonEnviando.classList.add('visually-hidden');
+            botonEnviar.classList.remove('visually-hidden');
+        });
+
+    </script>
+</body>
+</html>
